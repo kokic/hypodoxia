@@ -1,0 +1,7 @@
+{
+  "name": "hypodoxia",
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./hypodoxia.ts --outfile=./target/hypodoxia.js"
+  }
+}
