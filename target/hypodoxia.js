@@ -39,19 +39,34 @@ function matchHypodoxiaJson(json, href) {
 // hypodoxia.ts
 class Hypodoxia {
   list;
+  loaded = false;
+  comments = [];
   constructor(list) {
     this.list = list;
   }
-  async toComments(matcher = matchHypodoxiaJson, href = document.location.href) {
-    const comments = [];
+  async loadCommentsOnce(matcher = matchHypodoxiaJson, href = document.location.href) {
+    if (this.loaded === true) {
+      return this.comments;
+    }
     for (const { name, link, type } of this.list) {
       const associated = (await fetchHypodoxia(link, href, matcher, type)).map((text) => ({ name, text }));
-      comments.push(...associated);
+      this.comments.push(...associated);
     }
-    return comments;
+    this.loaded = true;
+    return this.comments;
   }
-  async toElement(titleText = (n) => `${n} \u6761\u8BC4\u8BBA`) {
-    const comments = await this.toComments();
+  async defaultView(titleText = View.defaultTitleText) {
+    return await View.toElement(this, titleText);
+  }
+  async appendTo(div) {
+    document.addEventListener("DOMContentLoaded", async () => div.appendChild(await this.defaultView()));
+  }
+}
+var View;
+((View) => {
+  View.defaultTitleText = (n) => `${n} \u6761\u8BC4\u8BBA`;
+  async function toElement(self, titleText = View.defaultTitleText) {
+    const comments = await self.loadCommentsOnce();
     const container = document.createElement("div");
     Object.assign(container.style, Styles.container);
     const title = document.createElement("h2");
@@ -73,7 +88,8 @@ class Hypodoxia {
     });
     return container;
   }
-}
+  View.toElement = toElement;
+})(View ||= {});
 var Styles;
 ((Styles) => {
   Styles.container = {
@@ -99,5 +115,6 @@ var Styles;
 })(Styles ||= {});
 var hypodoxia_default = Hypodoxia;
 export {
-  hypodoxia_default as default
+  hypodoxia_default as default,
+  View
 };

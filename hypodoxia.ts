@@ -15,27 +15,52 @@ export type Comment = {
 
 class Hypodoxia {
 
+    private loaded: boolean = false;
+
+    private comments: Comment[] = [];
+
     constructor(private list: Subscribed[]) { }
 
-    async toComments(
+    async loadCommentsOnce(
         matcher: HypodoxiaMatcher = matchHypodoxiaJson,
         href: string = document.location.href,
     ): Promise<Comment[]> {
-        const comments: Comment[] = [];
+        if (this.loaded === true) {
+            return this.comments;
+        }
 
         for (const { name, link, type } of this.list) {
             const associated = (await fetchHypodoxia(link, href, matcher, type))
                 .map((text: string) => ({ name, text } as Comment));
-            comments.push(...associated);
+            this.comments.push(...associated);
         }
 
-        return comments;
+        this.loaded = true;
+
+        return this.comments;
     }
 
-    async toElement(
-        titleText: (n: number) => string = (n: number) => `${n} 条评论`,
+    async defaultView(
+        titleText: (n: number) => string = View.defaultTitleText,
     ): Promise<HTMLElement> {
-        const comments = await this.toComments();
+        return await View.toElement(this, titleText);
+    }
+
+    async appendTo(div: HTMLElement): Promise<void> {
+        document.addEventListener("DOMContentLoaded", async () =>
+            div.appendChild(await this.defaultView()));
+    }
+};
+
+export namespace View {
+
+    export const defaultTitleText = (n: number) => `${n} 条评论`;
+
+    export async function toElement(
+        self: Hypodoxia,
+        titleText: (n: number) => string = defaultTitleText,
+    ): Promise<HTMLElement> {
+        const comments = await self.loadCommentsOnce();
 
         const container = document.createElement('div');
         Object.assign(container.style, Styles.container);
@@ -64,7 +89,6 @@ class Hypodoxia {
 
         return container;
     }
-
 };
 
 namespace Styles {
