@@ -58,14 +58,16 @@ class Hypodoxia {
   async defaultView(titleText = View.defaultTitleText) {
     return await View.toElement(this, titleText);
   }
-  async appendTo(div) {
+  appendTo(div) {
     document.addEventListener("DOMContentLoaded", async () => div.appendChild(await this.defaultView()));
   }
-  async appendToIfNotEmpty(div) {
-    const comments = await this.loadCommentsOnce();
-    if (comments.length > 0) {
-      await this.appendTo(div);
-    }
+  appendToIfNotEmpty(div) {
+    document.addEventListener("DOMContentLoaded", async () => {
+      const comments = await this.loadCommentsOnce();
+      if (comments.length > 0) {
+        div.appendChild(await this.defaultView());
+      }
+    });
   }
 }
 var View;
