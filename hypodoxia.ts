@@ -46,16 +46,18 @@ class Hypodoxia {
         return await View.toElement(this, titleText);
     }
 
-    async appendTo(div: HTMLElement): Promise<void> {
+    appendTo(div: HTMLElement): void {
         document.addEventListener("DOMContentLoaded", async () =>
             div.appendChild(await this.defaultView()));
     }
 
-    async appendToIfNotEmpty(div: HTMLElement): Promise<void> {
-        const comments = await this.loadCommentsOnce();
-        if (comments.length > 0) {
-            await this.appendTo(div);
-        }
+    appendToIfNotEmpty(div: HTMLElement): void {
+        document.addEventListener("DOMContentLoaded", async () => {
+            const comments = await this.loadCommentsOnce();
+            if (comments.length > 0) {
+                div.appendChild(await this.defaultView());
+            }
+        });
     }
 };
 
